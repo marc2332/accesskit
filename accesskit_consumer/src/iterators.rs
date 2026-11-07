@@ -484,7 +484,7 @@ pub struct FilteredChildren<'a, Filter: Fn(&NodeRef) -> FilterResult> {
 impl<'a, Filter: Fn(&NodeRef) -> FilterResult> FilteredChildren<'a, Filter> {
     pub(crate) fn new(node: NodeRef<'a>, filter: Filter) -> Self {
         let front = node.first_filtered_child(&filter);
-        let back = node.last_filtered_child(&filter);
+        let back = front.and_then(|_| node.last_filtered_child(&filter));
         Self {
             filter,
             back,
