@@ -23,6 +23,10 @@ fn common_filter_base(node: &NodeRef) -> Option<FilterResult> {
         return Some(FilterResult::ExcludeSubtree);
     }
 
+    common_filter_role(node)
+}
+
+fn common_filter_role(node: &NodeRef) -> Option<FilterResult> {
     // Graft nodes are transparent containers pointing to a subtree
     if node.is_graft() {
         return Some(FilterResult::ExcludeNode);
@@ -38,6 +42,15 @@ fn common_filter_base(node: &NodeRef) -> Option<FilterResult> {
 
 fn common_filter_without_parent_checks(node: &NodeRef) -> FilterResult {
     common_filter_base(node).unwrap_or(FilterResult::Include)
+}
+
+// Filters ancestors whose inherited hidden state was already checked on the descendant.
+fn common_filter_for_unhidden_ancestor(node: &NodeRef) -> FilterResult {
+    if node.is_focused() {
+        FilterResult::Include
+    } else {
+        common_filter_role(node).unwrap_or(FilterResult::Include)
+    }
 }
 
 fn is_first_sibling_in_parent_bbox<'a>(
@@ -62,7 +75,7 @@ pub fn common_filter(node: &NodeRef) -> FilterResult {
         }
     }
 
-    if let Some(parent) = node.filtered_parent(&common_filter_without_parent_checks) {
+    if let Some(parent) = node.filtered_parent(&common_filter_for_unhidden_ancestor) {
         if parent.clips_children() {
             // If the parent clips its children, then exclude this subtree
             // if this child's bounding box isn't inside the parent's bounding
