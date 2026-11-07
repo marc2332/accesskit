@@ -48,10 +48,9 @@ impl<'a> AdapterChangeHandler<'a> {
 
     fn add_node(&mut self, node: &NodeRef) {
         let id = node.id();
-        if self.added_nodes.contains(&id) {
+        if !self.added_nodes.insert(id) {
             return;
         }
-        self.added_nodes.insert(id);
 
         let role = node.role();
         let is_root = node.is_root();
@@ -90,10 +89,9 @@ impl<'a> AdapterChangeHandler<'a> {
 
     fn remove_node(&mut self, node: &NodeRef) {
         let id = node.id();
-        if self.removed_nodes.contains(&id) {
+        if !self.removed_nodes.insert(id) {
             return;
         }
-        self.removed_nodes.insert(id);
 
         let role = node.role();
         let is_root = node.is_root();
@@ -123,10 +121,9 @@ impl<'a> AdapterChangeHandler<'a> {
             return;
         }
         let id = new_node.id();
-        if self.checked_text_change.contains(&id) {
+        if !self.checked_text_change.insert(id) {
             return;
         }
-        self.checked_text_change.insert(id);
         let old_text = old_node.document_range().text();
         let new_text = new_node.document_range().text();
 
@@ -251,9 +248,6 @@ impl<'a> AdapterChangeHandler<'a> {
             return;
         }
         let id = node.id();
-        if self.selection_changed.contains(&id) {
-            return;
-        }
         self.selection_changed.insert(id);
     }
 
