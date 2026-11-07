@@ -18,7 +18,7 @@ use atspi_common::{
     Role as AtspiRole, ScrollType, State, StateSet,
 };
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     hash::{Hash, Hasher},
     sync::{Arc, RwLock, RwLockReadGuard, Weak},
 };
@@ -692,13 +692,18 @@ impl NodeWrapper<'_> {
     fn notify_children_changes(&self, adapter: &Adapter, old: &NodeWrapper<'_>) {
         let old_filtered_children = old.filtered_child_ids().collect::<Vec<FullNodeId>>();
         let new_filtered_children = self.filtered_child_ids().collect::<Vec<FullNodeId>>();
+        if old_filtered_children == new_filtered_children {
+            return;
+        }
+        let old_child_ids: HashSet<_> = old_filtered_children.iter().copied().collect();
+        let new_child_ids: HashSet<_> = new_filtered_children.iter().copied().collect();
         for (index, child) in new_filtered_children.iter().enumerate() {
-            if !old_filtered_children.contains(child) {
+            if !old_child_ids.contains(child) {
                 adapter.emit_object_event(self.id(), ObjectEvent::ChildAdded(index, *child));
             }
         }
         for child in old_filtered_children.into_iter() {
-            if !new_filtered_children.contains(&child) {
+            if !new_child_ids.contains(&child) {
                 adapter.emit_object_event(self.id(), ObjectEvent::ChildRemoved(child));
             }
         }
